@@ -1,0 +1,149 @@
+# ==========================================
+# BÀI 1: Làm quen với Numpy và Pandas
+# ==========================================
+
+import numpy as np
+import pandas as pd
+
+# 1. Tạo một mảng Numpy 1 chiều chứa các số từ 1 đến 10
+# (Chị vẫn dùng lệnh tiếng Anh này vì nó là tên hàm bắt buộc, nhưng không in gì ra hết)
+arr_1d = np.arange(1, 11)
+
+print("=== 1. MẢNG NUMPY (1 đến 10) ===")
+# In trực tiếp mảng ra, chỉ toàn số thôi
+print(arr_1d)
+print("\n" + "="*50 + "\n")
+
+
+# 2. Tạo một DataFrame chứa thông tin của 5 sinh viên
+data = {
+    'Họ tên': ['Nguyễn Văn An', 'Trần Thị Bình', 'Lê Hoàng Cường', 'Phạm Minh Dung', 'Hoàng Thu Hà'],
+    'Tuổi': [19, 19, 20, 19, 20],
+    'Điểm toán': [8.5, 9.2, 7.8, 8.0, 9.5]
+}
+df = pd.DataFrame(data)
+
+print("=== 2. DATAFRAME THÔNG TIN 5 SINH VIÊN ===")
+# In bảng dữ liệu ra, tiêu đề cột đã là tiếng Việt rồi
+print(df)
+print("\n" + "="*50 + "\n")
+
+
+# 3. Tính điểm trung bình môn toán và in kết quả
+# (Chị bỏ luôn lệnh df.info() vì nó in ra rất nhiều tiếng Anh kỹ thuật lạ)
+print("=== 3. KẾT QUẢ TÍNH TOÁN ===")
+
+# Tính điểm trung bình
+avg_math = df['Điểm toán'].mean()
+
+# In kết quả cuối cùng bằng tiếng Việt hoàn toàn
+print(f"Điểm trung bình môn toán của các sinh viên là: {avg_math}")
+
+
+
+# ==========================================
+# BÀI 2: PHÂN LOẠI CÁC BÀI TOÁN MACHINE LEARNING
+# ==========================================
+
+# 1. Dự đoán giá nhà dựa trên diện tích:
+# -> Nhóm: Học có giám sát (Supervised Learning - Hồi quy / Regression)
+# Lý do: Dữ liệu đầu vào có nhãn đích rõ ràng (giá nhà cụ thể gắn với từng diện tích).
+
+# 2. Gom nhóm khách hàng dựa trên hành vi mua sắm:
+# -> Nhóm: Học không giám sát (Unsupervised Learning - Gom cụm / Clustering)
+# Lý do: Dữ liệu chưa được gán nhãn trước, mô hình tự tìm ra các nhóm khách hàng có đặc điểm tương tự.
+
+# 3. Phân loại email là Spam hay không:
+# -> Nhóm: Học có giám sát (Supervised Learning - Phân loại / Classification)
+# Lý do: Dữ liệu huấn luyện đã được gán nhãn sẵn (nhãn là Spam hoặc Không Spam).
+
+# 4. Nhận diện chữ viết tay từ hình ảnh:
+# -> Nhóm: Học có giám sát (Supervised Learning - Phân loại / Classification)
+# Lý do: Mỗi hình ảnh chữ viết tay đều đi kèm với nhãn xác định đúng ký tự đó là gì.
+
+print("Đã hoàn thành phân loại các bài toán Machine Learning cho Bài 2!")
+
+
+
+
+# ==========================================
+# BÀI 3: Chạy thử mô hình đơn giản với Scikit-Learn
+# ==========================================
+
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LinearRegression
+
+# Bước 1: Load dữ liệu Iris (Lấy đặc trưng đầu vào X và nhãn y)
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+print("=== 1. TẢI DỮ LIỆU THÀNH CÔNG ===")
+print(f"Số lượng mẫu dữ liệu: {X.shape[0]}")
+print(f"Số lượng đặc trưng (features) của mỗi mẫu: {X.shape[1]}")
+print("\n" + "="*50 + "\n")
+
+# Bước 2: Khởi tạo mô hình Linear Regression
+model = LinearRegression()
+
+# Bước 3: Huấn luyện mô hình (Fit) với dữ liệu
+model.fit(X, y)
+print("=== 2. HUẤN LUYỆN MÔ HÌNH (FIT) ===")
+print("Mô hình đã học xong từ dữ liệu!")
+print("\n" + "="*50 + "\n")
+
+# Bước 4: Dự đoán (Predict) thử với 5 mẫu dữ liệu đầu tiên trong tập
+# (Do Linear Regression trả về số thực, ta sẽ làm tròn hoặc xem giá trị dự đoán)
+du_doan = model.predict(X[:5])
+thuc_te = y[:5]
+
+print("=== 3. KẾT QUẢ DỰ ĐOÁN (PREDICT) ===")
+print(giá_trị_dự_đoán := [f"Mẫu {i+1} - Thực tế: {thuc_te[i]} | Dự đoán: {du_doan[i]:.2f}" for i in range(5)])
+
+
+
+
+# ==========================================
+# BÀI 4: QUY TRÌNH ML HOÀN CHỈNH - PHẦN 1: Thu thập và Kiểm tra dữ liệu
+# ==========================================
+
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_digits
+
+# 1. Tải tập dữ liệu digits
+digits = load_digits()
+X = digits.data
+y = digits.target
+
+# 2. In ra hình dạng (shape) của dữ liệu và nhãn
+print("=== THÔNG TIN KÍCH THƯỚC DỮ LIỆU ===")
+print(f"Hình dạng của dữ liệu đầu vào (X.shape): {X.shape}")
+print(f"Hình dạng của nhãn (y.shape): {y.shape}")
+print("\n" + "="*50 + "\n")
+
+# 3. Hiển thị mẫu dữ liệu đầu tiên dưới dạng hình ảnh
+print("=== HIỂN THỊ MẪU DỮ LIỆU ĐẦU TIÊN ===")
+print(f"Nhãn (ý nghĩa thực tế) của mẫu đầu tiên là: {y[0]}")
+
+# Vẽ hình ảnh trực quan của chữ số đầu tiên
+plt.figure(figsize=(3, 3))
+plt.imshow(digits.images[0], cmap='gray')
+plt.title(f"Nhãn: {y[0]}")
+plt.axis('off') # Tắt trục tọa độ cho gọn
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
