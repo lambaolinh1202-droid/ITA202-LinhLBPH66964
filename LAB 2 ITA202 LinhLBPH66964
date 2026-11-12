@@ -1,0 +1,156 @@
+# ==========================================
+# BÀI 1: LÀM SẠCH DỮ LIỆU (MISSING VALUES & OUTLIERS)
+# ==========================================
+
+import numpy as np
+import pandas as pd
+
+# 1. Tạo DataFrame chứa dữ liệu bị thiếu (NaN) và giá trị ngoại lệ (outlier)
+data = {
+    'Sản phẩm': ['Áo thun', 'Quần jeans', 'Giày sneaker', 'Mũ lưỡi trai', 'Balo', 'Áo khoác'],
+    'Giá bán': [150000, 350000, np.nan, 80000, 250000, 15000000] # 15 triệu là ngoại lệ, NaN là thiếu dữ liệu
+}
+df = pd.DataFrame(data)
+
+print("=== 1. DỮ LIỆU BAN ĐẦU (CÓ THIẾU VÀ NGOẠI LỆ) ===")
+print(df)
+print("\n" + "="*50 + "\n")
+
+# 2. Điền các giá trị thiếu (NaN) bằng giá trị trung bình (mean) của cột
+gia_tb = df['Giá bán'].mean()
+df['Giá bán'] = df['Giá bán'].fillna(gia_tb)
+
+print("=== 2. SAU KHI ĐIỀN GIÁ TRỊ THIẾU BẰNG MEAN ===")
+print(df)
+print(f"(Giá trị trung bình dùng để điền vào ô trống: {gia_tb:,.2f} VNĐ)")
+print("\n" + "="*50 + "\n")
+
+# 3. Phát hiện và xử lý giá trị ngoại lệ (lớn hơn 3 lần độ lệch chuẩn so với trung bình)
+mean_val = df['Giá bán'].mean()
+std_val = df['Giá bán'].std()
+nguong_gioi_han = mean_val + 3 * std_val
+
+print("=== 3. XỬ LÝ GIÁ TRỊ NGOẠI LỆ ===")
+print(f"Ngưỡng giới hạn an toàn (Mean + 3*Std): {nguong_gioi_han:,.2f}")
+
+# Thay thế các giá trị vượt ngưỡng ngoại lệ bằng chính giá trị ngưỡng (Capping)
+df['Giá bán'] = df['Giá bán'].apply(lambda x: nguong_gioi_han if x > nguong_gioi_han else x)
+
+print("\n--- Bảng dữ liệu hoàn chỉnh sau khi đã làm sạch ---")
+print(df)
+
+
+
+# ==========================================
+# BÀI 2: CHUẨN HÓA DỮ LIỆU (SCALING)
+# ==========================================
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+
+# 1. Tạo dữ liệu mẫu gồm 2 cột: Tuổi (thang đo nhỏ) và Thu nhập (thang đo lớn)
+data = {
+    'Tuổi': [22, 35, 40, 50, 58],
+    'Thu nhập': [12000000, 35000000, 45000000, 80000000, 95000000]
+}
+df_goc = pd.DataFrame(data)
+
+print("=== 1. DỮ LIỆU GỐC (CHƯA CHUẨN HÓA) ===")
+print(df_goc)
+print("\n" + "="*50 + "\n")
+
+# 2. Sử dụng StandardScaler (Đưa về phân phối chuẩn: trung bình = 0, độ lệch chuẩn = 1)
+scaler_standard = StandardScaler()
+scaled_standard_array = scaler_standard.fit_transform(df_goc)
+df_standard = pd.DataFrame(scaled_standard_array, columns=['Tuổi (Standard)', 'Thu nhập (Standard)'])
+
+print("=== 2. SAU KHI DÙNG STANDARDSCALER ===")
+print(df_standard)
+print("\n" + "="*50 + "\n")
+
+# 3. Sử dụng MinMaxScaler (Đưa toàn bộ về đoạn từ [0, 1])
+scaler_minmax = MinMaxScaler()
+scaled_minmax_array = scaler_minmax.fit_transform(df_goc)
+df_minmax = pd.DataFrame(scaled_minmax_array, columns=['Tuổi (MinMax)', 'Thu nhập (MinMax)'])
+
+print("=== 3. SAU KHI DÙNG MINMAXSCALER ===")
+print(df_minmax)
+
+
+# ==========================================
+# BÀI 3: CHIA TẬP DỮ LIỆU TRAIN / TEST
+# ==========================================
+
+from sklearn.datasets import load_diabetes
+from sklearn.model_selection import train_test_split
+
+# 1. Tải tập dữ liệu diabetes từ sklearn
+diabetes = load_diabetes()
+X = diabetes.data
+y = diabetes.target
+
+print("=== 1. KÍCH THƯỚC DỮ LIỆU GỐC ===")
+print(f"Tổng số mẫu dữ liệu đầu vào (X): {X.shape[0]}")
+print(f"Tổng số nhãn mục tiêu (y): {y.shape[0]}")
+print("\n" + "="*50 + "\n")
+
+# 2. Sử dụng train_test_split để chia dữ liệu: Train (80%) và Test (20%)
+# test_size=0.2 nghĩa là 20% cho tập kiểm tra, 80% còn lại tự động thuộc tập huấn luyện
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. In kích thước của các tập sau khi chia
+print("=== 2. KÍCH THƯỚC SAU KHI CHIA (80/20) ===")
+print(f"Số lượng mẫu dùng để huấn luyện (X_train): {X_train.shape[0]} mẫu")
+print(f"Số lượng mẫu dùng để kiểm tra (X_test): {X_test.shape[0]} mẫu")
+
+
+
+# ==========================================
+# BÀI 4: QUY TRÌNH ML HOÀN CHỈNH - PHẦN 2 (TIỀN XỬ LÝ & PIPELINE)
+# ==========================================
+
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score
+
+# 1. Tải tập dữ liệu digits từ sklearn
+digits = load_digits()
+X = digits.data
+y = digits.target
+
+print("=== 1. TẢI DỮ LIỆU THÀNH CÔNG ===")
+print(f"Tổng số mẫu: {X.shape[0]}, Số đặc trưng (pixel): {X.shape[1]}")
+print("\n" + "="*50 + "\n")
+
+# 2. Chia tập dữ liệu thành Train (80%) và Test (20%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. Xây dựng Pipeline gồm bước chuẩn hóa (StandardScaler) và mô hình (LogisticRegression)
+# Pipeline sẽ tự động fit_transform trên tập train và transform (không fit) trên tập test rất an toàn
+pipeline_ml = Pipeline([
+    ('chuan_hoa', StandardScaler()),                 # Bước 1: Chuẩn hóa dữ liệu pixel
+    ('mo_hinh', LogisticRegression(max_iter=1000))   # Bước 2: Huấn luyện mô hình phân loại
+])
+
+# 4. Huấn luyện mô hình thông qua Pipeline
+pipeline_ml.fit(X_train, y_train)
+print("=== 2. HUẤN LUYỆN PIPELINE HOÀN TẤT ===")
+
+# 5. Dự đoán và đánh giá độ chính xác trên tập kiểm tra (Test)
+y_pred = pipeline_ml.predict(X_test)
+do_chinh_xac = accuracy_score(y_test, y_pred)
+
+print("=== 3. KẾT QUẢ ĐÁNH GIÁ MÔ HÌNH ===")
+print(f"Độ chính xác (Accuracy) trên tập Test: {do_chinh_xac * 100:.2f}%").
+
+
+
+
+
+
+
+
