@@ -1,0 +1,196 @@
+# ==========================================
+# BÀI 1: XÂY DỰNG MÔ HÌNH HỒI QUY TUYẾN TÍNH
+# ==========================================
+
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+# 1. Tạo dữ liệu giả lập có mối quan hệ tuyến tính: y = 2X + 1 + nhiễu
+np.random.seed(42)  # Cố định ngẫu nhiên để kết quả luôn ổn định mỗi lần chạy
+X = 2 * np.random.rand(100, 1)                  # Tạo 100 điểm dữ liệu X ngẫu nhiên từ 0 đến 2
+y = 2 * X + 1 + np.random.randn(100, 1) * 0.5   # y = 2*X + 1 cộng thêm một ít nhiễu (noise)
+
+print("=== 1. TẠO DỮ LIỆU GIẢ LẬP THÀNH CÔNG ===")
+print(f"Kích thước tập dữ liệu X: {X.shape}")
+print(f"Kích thước tập nhãn y: {y.shape}")
+print("\n" + "="*50 + "\n")
+
+# 2. Khởi tạo mô hình Linear Regression và huấn luyện (Fit)
+model = LinearRegression()
+model.fit(X, y)
+
+# 3. In ra các hệ số của mô hình (coefficient và intercept)
+print("=== 2. KẾT QUẢ HUẤN LUYỆN MÔ HÌNH ===")
+print(f"Hệ số góc (Coefficient / Weight - Trọng số w): {model.coef_[0][0]:.4f}")
+print(f"Hệ số chặn (Intercept / Bias - Độ lệch b): {model.intercept_[0]:.4f}")
+print(f"\n=> Phương trình hồi quy mô hình học được: y = {model.coef_[0][0]:.4f}*X + {model.intercept_[0]:.4f}")
+
+
+
+# ==========================================
+# BÀI 2: ĐÁNH GIÁ MÔ HÌNH HỒI QUY TUYẾN TÍNH
+# ==========================================
+
+import numpy as np
+from sklearn.datasets import load_diabetes
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+# 1. Tải tập dữ liệu diabetes và chỉ lấy 1 đặc trưng duy nhất (ví dụ: cột thứ 2 - chỉ số BMI)
+diabetes = load_diabetes()
+X = diabetes.data[:, np.newaxis, 2]  # Lấy cột đặc trưng thứ 2 (BMI)
+y = diabetes.target                    # Biến mục tiêu cần dự đoán
+
+# 2. Chia dữ liệu thành tập Train (80%) và Test (20%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. Khởi tạo và huấn luyện mô hình Linear Regression
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# 4. Dự đoán trên tập kiểm tra (Test)
+y_pred = model.predict(X_test)
+
+# 5. Tính toán các chỉ số đánh giá mô hình
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print("=== KẾT QUẢ ĐÁNH GIÁ MÔ HÌNH HỒI QUY ===")
+print(f"1. MAE (Sai số tuyệt đối trung bình): {mae:.4f}")
+print(f"2. MSE (Sai số bình phương trung bình): {mse:.4f}")
+print(f"3. R-squared (Hệ số xác định R²): {r2:.4f}")
+
+# ==========================================
+# GIẢ Ý NGHĨA CÁC CHỈ SỐ (GIẢI THÍCH QUA COMMENT)
+# ==========================================
+# - MAE (Mean Absolute Error):
+#   + Ý nghĩa: Đo lường trung bình khoảng cách chênh lệch tuyệt đối giữa giá trị thực tế và giá trị mô hình dự đoán.
+#   + Ưu điểm: Dễ hiểu, đơn vị đo trùng với đơn vị của biến mục tiêu y. Giá trị MAE càng nhỏ nghĩa là mô hình dự đoán càng chính xác.
+#
+# - MSE (Mean Squared Error):
+#   + Ý nghĩa: Tính trung bình tổng bình phương các sai số giữa giá trị thực tế và dự đoán.
+#   + Đặc điểm: Do có bình phương nên MSE sẽ "phạt nặng" các điểm dự đoán sai lệch lớn (outliers). Giá trị càng gần 0 mô hình càng tốt.
+#
+# - R-squared (R² Score / Hệ số xác định):
+#   + Ý nghĩa: Cho biết mô hình Hồi quy tuyến tính giải thích được bao nhiêu phần trăm (%) sự biến thiên của dữ liệu thực tế.
+#   + Giá trị: Thường nằm trong khoảng từ 0 đến 1 (hoặc âm nếu mô hình quá tệ). R² càng gần 1 (hoặc 100%) chứng tỏ mô hình fit và dự đoán dữ liệu cực kỳ tốt.
+
+
+
+# ==========================================
+# BÀI 3: TRỰC QUAN HÓA KẾT QUẢ HỒI QUY TUYẾN TÍNH
+# ==========================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_diabetes
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+# 1. Tải tập dữ liệu diabetes và lấy 1 đặc trưng duy nhất (BMI) để dễ vẽ biểu đồ 2D
+diabetes = load_diabetes()
+X = diabetes.data[:, np.newaxis, 2]  # Đặc trưng BMI
+y = diabetes.target                    # Biến mục tiêu
+
+# 2. Chia tập Train / Test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. Khởi tạo và huấn luyện mô hình
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# 4. Dự đoán trên tập Test để lấy đường thẳng hồi quy
+y_pred = model.predict(X_test)
+
+# 5. Trực quan hóa kết quả bằng Matplotlib
+plt.figure(figsize=(8, 5))
+
+# Vẽ biểu đồ tán xạ (scatter plot) của dữ liệu kiểm tra thực tế (màu xanh dương)
+plt.scatter(X_test, y_test, color='blue', label='Dữ liệu thực tế (Test Data)', alpha=0.7)
+
+# Vẽ đường thẳng dự đoán của mô hình (màu đỏ)
+plt.plot(X_test, y_pred, color='red', linewidth=2, label='Đường thẳng dự đoán (Linear Model)')
+
+# Trang trí biểu đồ cho bắt mắt, chuyên nghiệp
+plt.title('Biểu đồ trực quan hóa Hồi quy tuyến tính (Linear Regression)', fontsize=12, fontweight='bold')
+plt.xlabel('Đặc trưng (BMI đã chuẩn hóa)', fontsize=10)
+plt.ylabel('Giá trị mục tiêu (Disease Progression)', fontsize=10)
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.5)
+
+# Hiển thị biểu đồ
+plt.show()
+
+print("=== HOÀN THÀNH TRỰC QUAN HÓA BÀI 3! ===")
+
+
+
+# ==========================================
+# BÀI 4: QUY TRÌNH ML HOÀN CHỈNH - HỒI QUY (CALIFORNIA HOUSING)
+# ==========================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Bước 1: Tải tập dữ liệu giá nhà California
+# Giải pháp thay thế: Tải trực tiếp từ repo GitHub chính thức để tránh lỗi liên kết Figshare cũ của sklearn
+try:
+    from sklearn.datasets import fetch_california_housing
+    housing = fetch_california_housing()
+    X = housing.data
+    y = housing.target
+except Exception as e:
+    print("Đang sử dụng nguồn dự phòng do lỗi tải trực tiếp từ sklearn...")
+    data_url = "https://raw.githubusercontent.com/ageron/handson-ml2/master/datasets/housing/housing.csv"
+    df = pd.read_csv(data_url)
+    # Tiền xử lý nhanh dữ liệu dự phòng
+    df = df.dropna()
+    X = df.drop(columns=['ocean_proximity', 'median_house_value']).values
+    y = df['median_house_value'].values
+
+print("=== 1. TẢI DỮ LIỆU THÀNH CÔNG ===")
+print(f"Tổng số mẫu nhà: {X.shape[0]}")
+print(f"Số lượng đặc trưng (features): {X.shape[1]}")
+print("\n" + "="*50 + "\n")
+
+# Bước 2: Chia tập dữ liệu thành Train (80%) và Test (20%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Bước 3: Tiền xử lý dữ liệu - Chuẩn hóa (StandardScaler)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Bước 4: Khởi tạo và Huấn luyện mô hình Linear Regression
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+print("=== 2. HUẤN LUYỆN MÔ HÌNH HỒI QUY HOÀN TẤT ===")
+
+# Bước 5: Dự đoán và Đánh giá chất lượng mô hình trên tập Test
+y_pred = model.predict(X_test_scaled)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print("=== 3. KẾT QUẢ ĐÁNH GIÁ MÔ HÌNH ===")
+print(f"Mean Squared Error (MSE): {mse:.4f}")
+print(f"R-squared (R² Score): {r2:.4f}")
+print("\n" + "="*50 + "\n")
+
+# Bước 6: Trực quan hóa một phần kết quả (So sánh 50 mẫu thực tế và dự đoán)
+plt.figure(figsize=(9, 5))
+plt.plot(y_test[:50], label='Giá nhà thực tế (Actual)', color='blue', marker='o', linestyle='-', linewidth=1.5)
+plt.plot(y_pred[:50], label='Giá nhà dự đoán (Predicted)', color='red', marker='x', linestyle='--', linewidth=1.5)
+
+plt.title('So sánh Giá nhà Thực tế và Giá nhà Dự đoán (50 mẫu đầu tiên trên tập Test)', fontsize=11, fontweight='bold')
+plt.xlabel('Thứ tự mẫu nhà', fontsize=10)
+plt.ylabel('Giá trị nhà', fontsize=10)
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.show()
