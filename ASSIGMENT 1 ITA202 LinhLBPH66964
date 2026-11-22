@@ -1,0 +1,122 @@
+# ==============================================================================
+# ITA202 - ASSIGNMENT 1: CHỌN DỮ LIỆU VÀ TIỀN XỬ LÝ DỮ LIỆU (GIAI ĐOẠN 1)
+# Đề tài: Dự đoán / Chẩn đoán bệnh ung thư vú (Breast Cancer Classification)
+# ==============================================================================
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+# ------------------------------------------------------------------------------
+# BƯỚC 1: CHỌN VÀ KHÁM PHÁ DỮ LIỆU (SHAPE, INFO, DESCRIBE)
+# ------------------------------------------------------------------------------
+cancer = load_breast_cancer(as_frame=True)
+df_raw = cancer.frame.copy()
+
+# Mô phỏng thực tế dữ liệu thô có chứa giá trị khuyết thiếu (NaN) và ngoại lệ (Outliers)
+rng = np.random.default_rng(42)
+for col in ['mean radius', 'mean texture', 'mean area']:
+    missing_idx = rng.choice(df_raw.index, size=4, replace=False)
+    df_raw.loc[missing_idx, col] = np.nan
+
+outlier_idx = rng.choice(df_raw.dropna().index, size=3, replace=False)
+df_raw.loc[outlier_idx, 'mean area'] = df_raw['mean area'].max() * 3.5
+
+# Lưu tập dữ liệu thô ban đầu
+df_raw.to_csv('breast_cancer_raw.csv', index=False)
+
+print("=== 1. KHÁM PHÁ CẤU TRÚC DỮ LIỆU THÔ ===")
+print(f"- Kích thước dữ liệu (Shape): {df_raw.shape} (569 mẫu, 30 đặc trưng + 1 nhãn target)")
+print("\n- Thông tin kiểu dữ liệu và giá trị thiếu (Info):")
+print(df_raw.info())
+print("\n- Thống kê mô tả (Describe - 5 cột đầu):")
+print(df_raw.iloc[:, :5].describe())
+print("\n" + "=" * 65 + "\n")
+
+# ------------------------------------------------------------------------------
+# BƯỚC 2: LÀM SẠCH DỮ LIỆU (XỬ LÝ GIÁ TRỊ THIẾU NaN & NGOẠI LỆ OUTLIERS)
+# ------------------------------------------------------------------------------
+df_clean = df_raw.copy()
+feature_cols = [c for c in df_clean.columns if c != 'target']
+
+# 2.1. Xử lý giá trị khuyết thiếu (NaN) bằng Trung vị (Median)
+missing_before = df_clean.isnull().sum().sum()
+for col in feature_cols:
+    if df_clean[col].isnull().sum() > 0:
+        df_clean[col] = df_clean[col].fillna(df_clean[col].median())
+missing_after = df_clean.isnull().sum().sum()
+
+# 2.2. Phát hiện và xử lý ngoại lệ (Outliers) bằng phương pháp IQR Capping
+outliers_capped = 0
+for col in feature_cols:
+    Q1 = df_clean[col].quantile(0.25)
+    Q3 = df_clean[col].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    outliers_count = ((df_clean[col] < lower_bound) | (df_clean[col] > upper_bound)).sum()
+    outliers_capped += outliers_count
+    df_clean[col] = np.clip(df_clean[col], lower_bound, upper_bound)
+
+print("=== 2. KẾT QUẢ LÀM SẠCH DỮ LIỆU ===")
+print(f"- Tổng số giá trị NaN trước xử lý: {missing_before} -> Sau xử lý: {missing_after}")
+print(f"- Tổng số điểm ngoại lệ (Outliers) đã chuẩn biên (IQR Capping): {outliers_capped}")
+print("\n" + "=" * 65 + "\n")
+
+# ------------------------------------------------------------------------------
+# BƯỚC 3: TIỀN XỬ LÝ - CHIA TRAIN/TEST (80/20) & CHUẨN HÓA (STANDARDSCALER)
+# ------------------------------------------------------------------------------
+X = df_clean[feature_cols]
+y = df_clean['target']
+
+# Chia tập dữ liệu Train (80%) và Test (20%) có phân tầng (stratify)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# Chuẩn hóa dữ liệu (fit trên Train để tránh rò rỉ dữ liệu, sau đó transform)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Xuất toàn bộ tập dữ liệu sau tiền xử lý ra file CSV phục vụ Giai đoạn 2
+df_processed = pd.DataFrame(scaler.transform(X), columns=feature_cols)
+df_processed['target'] = y.values
+df_processed.to_csv('breast_cancer_preprocessed.csv', index=False)
+
+print("=== 3. KẾT QUẢ CHIA TẬP VÀ CHUẨN HÓA DỮ LIỆU ===")
+print(f"- Tập Train (80%): {X_train_scaled.shape[0]} mẫu | Tập Test (20%): {X_test_scaled.shape[0]} mẫu")
+print(f"- Giá trị trung bình (Mean) tập Train sau StandardScaler: {X_train_scaled.mean():.4f}")
+print(f"- Độ lệch chuẩn (Std) tập Train sau StandardScaler: {X_train_scaled.std():.4f}")
+print("- Đã xuất file dữ liệu sạch: breast_cancer_preprocessed.csv")
+print("\n" + "=" * 65 + "\n")
+
+# ------------------------------------------------------------------------------
+# BƯỚC 4: TRỰC QUAN HÓA KẾT QUẢ TIỀN XỬ LÝ
+# ------------------------------------------------------------------------------
+fig, axes = plt.subplots(2, 2, figsize=(14, 9))
+fig.suptitle('ITA202 - ASSIGNMENT 1: KET QUA TIEN XU LY DU LIEU (BREAST CANCER)', fontsize=13, fontweight='bold')
+
+sns.boxplot(x=df_raw['mean area'].dropna(), ax=axes[0, 0], color='#E07A5F')
+axes[0, 0].set_title('1. Truoc xu ly ngoai le (Outliers) - Mean Area')
+
+sns.boxplot(x=df_clean['mean area'], ax=axes[0, 1], color='#3D405B')
+axes[0, 1].set_title('2. Sau xu ly ngoai le (IQR Capping) - Mean Area')
+
+sns.kdeplot(df_clean['mean radius'], ax=axes[1, 0], label='mean radius', fill=True, color='#2A9D8F')
+sns.kdeplot(df_clean['mean texture'], ax=axes[1, 0], label='mean texture', fill=True, color='#E9C46A')
+axes[1, 0].set_title('3. Phan phoi TRUOC StandardScaler')
+axes[1, 0].legend()
+
+sns.kdeplot(df_processed['mean radius'], ax=axes[1, 1], label='mean radius (scaled)', fill=True, color='#2A9D8F')
+sns.kdeplot(df_processed['mean texture'], ax=axes[1, 1], label='mean texture (scaled)', fill=True, color='#E9C46A')
+axes[1, 1].set_title('4. Phan phoi SAU StandardScaler (Mean=0, Std=1)')
+axes[1, 1].legend()
+
+plt.tight_layout(rect=[0, 0.03, 1, 0.94])
+plt.savefig('ket_qua_tien_xu_ly.png', dpi=200)
+plt.show()
